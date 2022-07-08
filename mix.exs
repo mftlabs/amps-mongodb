@@ -1,4 +1,4 @@
-defmodule Amps.MixProject do
+defmodule AmpsMongoDb.MixProject do
 
   use Mix.Project
 
