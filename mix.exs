@@ -4,7 +4,7 @@ defmodule AmpsMongoDb.MixProject do
 
   def project do
     [
-      app: :amps_monngodb,
+      app: :amps_mongodb,
       version: "0.1.0",
       elixir: "~> 1.12",
       aliases: aliases(),
