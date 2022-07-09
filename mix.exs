@@ -26,10 +26,12 @@ defmodule AmpsMongoDb.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:amps_core, [git: "https://github.com/mftlabs/amps-core",
+          branch: "main"]},
       {:mongodb_driver, "~> 0.7"},
       {:uuid, "~> 2.0", hex: :uuid_erl},
       {:poison, "~> 3.1"},
-    {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"}
     ]
   end
 
