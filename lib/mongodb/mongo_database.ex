@@ -455,7 +455,7 @@ defmodule Amps.DB do
   def insert_with_id(collection, body, id) do
     case Mongo.replace_one(:mongo, collection, %{"_id" => id}, body, upsert: true) do
         {:ok, _result} ->
-          :ok
+          {:ok, id}
         {:error, err} ->
           {:error, err}
     end
