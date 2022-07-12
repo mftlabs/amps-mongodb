@@ -14,7 +14,6 @@ defimpl Poison.Encoder, for: BSON.ObjectId do
 end
 
 defmodule AmpsDatabase do
-
   def aggregate_field(collection, field) do
     Amps.DB.aggregate_field(collection, field)
   end
@@ -56,114 +55,113 @@ defmodule Amps.DB do
   def get_db() do
     case Application.get_env(:amps, :db) do
       "mongo" ->
-          {Mongo,
-           [
-             name: :mongo,
-             database: "amps",
-             url: Application.fetch_env!(:amps_web, AmpsWeb.Endpoint)[:mongo_addr],
-             pool_size: 15
-           ]}
+        {Mongo,
+         [
+           name: :mongo,
+           database: "amps",
+           url: Application.fetch_env!(:amps_web, AmpsWeb.Endpoint)[:mongo_addr],
+           pool_size: 15
+         ]}
 
-        "os" ->
-          {Amps.Cluster, []}
-      end
+      "os" ->
+        {Amps.Cluster, []}
     end
+  end
 
-    @impl true
-    def aggregate_field(collection, field) do
-      case Mongo.distinct(:mongo, collection, field, %{}) do
-        {:ok, vals} ->
-          vals
-        {:error, error} ->
-          {:error, error}
-      end
+  @impl true
+  def aggregate_field(collection, field) do
+    case Mongo.distinct(:mongo, collection, field, %{}) do
+      {:ok, vals} ->
+        vals
+
+      {:error, error} ->
+        {:error, error}
     end
+  end
 
-    @impl true
-    def get_page(collection, id, clauses, sort) do
-      obj = Mongo.find_one(:mongo, collection, %{"_id" => id})
-      clauses = MongoFilter.parse(clauses)
+  @impl true
+  def get_page(collection, id, clauses, sort) do
+    obj = Mongo.find_one(:mongo, collection, %{"_id" => id})
+    clauses = MongoFilter.parse(clauses)
 
-#      IO.inspect(clauses)
+    #      IO.inspect(clauses)
 
-      sort =
-        Enum.reduce(sort, %{}, fn {k, v}, acc ->
-          dir =
-            if v == "ASC" do
-              1
-            else
-              -1
-            end
-
-          {k, dir, Map.put(acc, k, dir)}
-        end)
-
-      case sort do
-        {field, dir, sort} ->
-          dir =
-            if dir == 1 do
-              "$lt"
-            else
-              "$gt"
-            end
-
-          countclause =
-            if clauses[field] do
-              Map.put(
-                clauses,
-                field,
-                Map.merge(clauses[field], %{
-                  dir => obj[field]
-                })
-              )
-            else
-              Map.put(clauses, field, %{
-                dir => obj[field]
-              })
-            end
-
-          {:ok, count} =
-            Mongo.count_documents(
-              :mongo,
-              collection,
-              countclause,
-              sort: sort
-            )
-
-          IO.inspect(count)
-
-          page = ceil((count + 1) / 25)
-
-          num = rem(count, 25)
-
-          cursor =
-            Mongo.find(
-              :mongo,
-              collection,
-              clauses,
-              sort: sort,
-              limit: 25,
-              skip: (page - 1) * 25
-            )
-
-          data =
-            cursor
-            |> Enum.to_list()
-
-          exists = Enum.at(data, num)["_id"] == id
-
-          if exists do
-            {:ok, page}
+    sort =
+      Enum.reduce(sort, %{}, fn {k, v}, acc ->
+        dir =
+          if v == "ASC" do
+            1
           else
-            {:error, "Dynamic Data"}
+            -1
           end
 
-        _ ->
-          {:error, "Not Sorting"}
-      end
+        {k, dir, Map.put(acc, k, dir)}
+      end)
+
+    case sort do
+      {field, dir, sort} ->
+        dir =
+          if dir == 1 do
+            "$lt"
+          else
+            "$gt"
+          end
+
+        countclause =
+          if clauses[field] do
+            Map.put(
+              clauses,
+              field,
+              Map.merge(clauses[field], %{
+                dir => obj[field]
+              })
+            )
+          else
+            Map.put(clauses, field, %{
+              dir => obj[field]
+            })
+          end
+
+        {:ok, count} =
+          Mongo.count_documents(
+            :mongo,
+            collection,
+            countclause,
+            sort: sort
+          )
+
+        IO.inspect(count)
+
+        page = ceil((count + 1) / 25)
+
+        num = rem(count, 25)
+
+        cursor =
+          Mongo.find(
+            :mongo,
+            collection,
+            clauses,
+            sort: sort,
+            limit: 25,
+            skip: (page - 1) * 25
+          )
+
+        data =
+          cursor
+          |> Enum.to_list()
+
+        exists = Enum.at(data, num)["_id"] == id
+
+        if exists do
+          {:ok, page}
+        else
+          {:error, "Dynamic Data"}
+        end
+
+      _ ->
+        {:error, "Not Sorting"}
     end
-
-
+  end
 
   @impl true
   def add_to_field(collection, body, id, field) do
@@ -187,7 +185,6 @@ defmodule Amps.DB do
   def find_one(collection, clauses, opts \\ []) do
     Mongo.find_one(:mongo, collection, clauses, opts)
   end
-
 
   @impl true
   def get_in_field(collection, id, field, fieldid) do
@@ -235,15 +232,15 @@ defmodule Amps.DB do
 
   @impl true
   def insert(collection, body) do
-
     id = :uuid.uuid_to_string(:uuid.get_v4(), :binary_nodash)
     body = Map.put(body, "_id", id)
+
     case Mongo.insert_one(:mongo, collection, body) do
       {:error, error} ->
         {:error, error}
+
       {:ok, _result} ->
         {:ok, id}
-
     end
   end
 
@@ -251,7 +248,7 @@ defmodule Amps.DB do
   def delete(collection, clauses) do
     case Mongo.delete_many(:mongo, collection, clauses) do
       {:ok, _result} ->
-          :ok
+        :ok
 
       {:error, error} ->
         error
@@ -262,17 +259,15 @@ defmodule Amps.DB do
   def delete_one(collection, clauses) do
     case Mongo.delete_one(:mongo, collection, clauses) do
       {:ok, _result} ->
-          :ok
+        :ok
 
       {:error, error} ->
         {:error, error}
     end
   end
 
-
   @impl true
   def get_rows(collection, query) do
-
     limit =
       if query["limit"] != nil do
         query["limit"]
@@ -367,17 +362,17 @@ defmodule Amps.DB do
     body = Map.drop(body, ["_id"])
 
     case Mongo.update_one(
-        :mongo,
-        collection,
-        %{"_id" => id},
-        %{"$set": body}
-      ) do
-        {:ok, _result} ->
-          :ok
-        {:error, error} ->
-          {:error, error}
+           :mongo,
+           collection,
+           %{"_id" => id},
+           %{"$set": body}
+         ) do
+      {:ok, _result} ->
+        :ok
 
-      end
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   @impl true
@@ -393,6 +388,7 @@ defmodule Amps.DB do
   @impl true
   def add_to_field_with_id(collection, body, id, field, fieldid) do
     body = Map.put(body, "_id", fieldid)
+
     {:ok, _result} =
       Mongo.update_one(
         :mongo,
@@ -401,13 +397,13 @@ defmodule Amps.DB do
         %{"$push": %{field => body}}
       )
 
-    Mongo.find_one(:mongo, collection, %{"_id" => id}, projection: %{field => true}
-    )
+    Mongo.find_one(:mongo, collection, %{"_id" => id}, projection: %{field => true})
   end
 
   @impl true
   def bulk_insert(doc) do
     id = :uuid.uuid_to_string(:uuid.get_v4(), :binary_nodash)
+
     doc =
       if doc[:level] != nil do
         Map.put(doc, :_id, id)
@@ -415,10 +411,20 @@ defmodule Amps.DB do
         Map.put(doc, "_id", id)
       end
 
-
     case Mongo.BulkOps.get_insert_one(doc) do
       {:insert, [{:error, error}]} ->
         {:error, error}
+
+      other ->
+        other
+    end
+  end
+
+  def bulk_update(clauses, doc) do
+    case Mongo.BulkOps.get_update_one(clauses, doc) do
+      {:update, [{:error, error}]} ->
+        {:error, error}
+
       other ->
         other
     end
@@ -454,16 +460,14 @@ defmodule Amps.DB do
   @impl true
   def insert_with_id(collection, body, id) do
     case Mongo.replace_one(:mongo, collection, %{"_id" => id}, body, upsert: true) do
-        {:ok, _result} ->
-          {:ok, id}
-        {:error, err} ->
-          {:error, err}
+      {:ok, _result} ->
+        {:ok, id}
+
+      {:error, err} ->
+        {:error, err}
     end
   end
-
 end
-
-
 
 defmodule MongoFilter do
   def convert_dates(map, acc) do
@@ -546,6 +550,7 @@ defmodule MongoFilter do
           Enum.at(pieces, 2) <>
             "-" <> Enum.at(pieces, 0) <> "-" <> Enum.at(pieces, 1)
         )
+
       {:ok, time} = Time.new(0, 0, 0, 0)
       DateTime.new!(date, time)
     else
