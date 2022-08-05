@@ -165,6 +165,8 @@ defmodule Amps.DB do
 
   @impl true
   def add_to_field(collection, body, id, field) do
+    fieldid = :uuid.uuid_to_string(:uuid.get_v4(), :binary_nodash)
+    body = Map.put(body, "_id", fieldid)
     {:ok, _result} =
       Mongo.update_one(
         :mongo,
