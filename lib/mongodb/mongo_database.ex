@@ -203,14 +203,14 @@ defmodule Amps.DB do
   end
 
   @impl true
-  def update_in_field(collection, body, id, field, idx) do
+  def update_in_field(collection, body, id, field, fieldid) do
     {:ok, _result} =
       Mongo.update_one(
         :mongo,
         collection,
-        %{"_id" => id},
+        %{"_id" => id, field <> "._id" => fieldid},
         %{
-          "$set": %{(field <> "." <> idx) => body}
+          "$set": %{field <> ".$" => body}
         }
       )
 
