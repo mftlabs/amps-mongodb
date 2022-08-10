@@ -378,10 +378,10 @@ defmodule Amps.DB do
   end
 
   @impl true
-  def delete_index(_collection) do
+  def delete_index(pattern) do
     Mongo.show_collections(:mongo)
     |> Enum.each(fn collection ->
-      if Regex.match?(Regex.compile!(collection), collection) do
+      if Regex.match?(Regex.compile!(pattern), collection) do
         Mongo.drop_collection(:mongo, collection)
       end
     end)
