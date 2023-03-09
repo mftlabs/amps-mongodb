@@ -59,7 +59,7 @@ defmodule Amps.DB do
          [
            name: :mongo,
            database: "amps",
-           url: Application.fetch_env!(:amps_web, AmpsWeb.Endpoint)[:mongo_addr],
+           url: Application.fetch_env!(:amps, :mongo_addr),
            pool_size: 15
          ]}
 
@@ -167,6 +167,7 @@ defmodule Amps.DB do
   def add_to_field(collection, body, id, field) do
     fieldid = :uuid.uuid_to_string(:uuid.get_v4(), :binary_nodash)
     body = Map.put(body, "_id", fieldid)
+
     {:ok, _result} =
       Mongo.update_one(
         :mongo,
@@ -208,9 +209,9 @@ defmodule Amps.DB do
       Mongo.update_one(
         :mongo,
         collection,
-        %{"_id" => id, field <> "._id" => fieldid},
+        %{"_id" => id, (field <> "._id") => fieldid},
         %{
-          "$set": %{field <> ".$" => body}
+          "$set": %{(field <> ".$") => body}
         }
       )
 
