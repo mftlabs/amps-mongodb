@@ -59,7 +59,7 @@ defmodule Amps.DB do
          [
            name: :mongo,
            database: "amps",
-           url: Application.fetch_env!(:amps, :mongo_addr),
+           url: Application.compile_env!(:amps, :mongo_addr),
            pool_size: 15
          ]}
 
