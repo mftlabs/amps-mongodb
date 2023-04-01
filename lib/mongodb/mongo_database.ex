@@ -222,14 +222,14 @@ defmodule Amps.DB do
   end
 
   @impl true
-  def delete_from_field(collection, body, id, field, _idx) do
+  def delete_from_field(collection, id, field, fieldid) do
     {:ok, _result} =
       Mongo.update_one(
         :mongo,
         collection,
         %{"_id" => id},
         %{
-          "$pull": %{field => body}
+          "$pull": %{"_id" => fieldid}
         }
       )
 
