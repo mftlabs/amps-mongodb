@@ -229,7 +229,7 @@ defmodule Amps.DB do
         collection,
         %{"_id" => id},
         %{
-          "$pull": %{"_id" => fieldid}
+          "$pull": %{field => %{"_id" => fieldid}}
         }
       )
 
