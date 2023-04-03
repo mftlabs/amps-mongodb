@@ -208,13 +208,16 @@ defmodule Amps.DB do
 
   @impl true
   def update_in_field(collection, body, id, field, fieldid) do
+    curr = get_in_field(collection, id, field, fieldid)
+    new = Map.merge(curr, body)
+
     {:ok, _result} =
       Mongo.update_one(
         :mongo,
         collection,
         %{"_id" => id, (field <> "._id") => fieldid},
         %{
-          "$set": %{(field <> ".$") => body}
+          "$set": %{(field <> ".$") => new}
         }
       )
 
