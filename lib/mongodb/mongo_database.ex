@@ -189,9 +189,10 @@ defmodule Amps.DB do
 
   @impl true
   def find_one(collection, clauses, opts \\ %{}) do
+    preparedFilter = MongoFilter.parse(clauses)
     opts = build_opts(opts)
 
-    Mongo.find_one(:mongo, collection, clauses, opts)
+    Mongo.find_one(:mongo, collection, preparedFilter, opts)
   end
 
   @impl true
@@ -299,13 +300,6 @@ defmodule Amps.DB do
         %{}
       end
 
-    filters =
-      if query["filters"] != nil do
-        query["filters"]
-      else
-        %{}
-      end
-
     fields =
       if query["fields"] do
         query["fields"]
@@ -322,8 +316,6 @@ defmodule Amps.DB do
         nil
       end
 
-    preparedFilter = MongoFilter.parse(filters)
-
     [
       sort: sort,
       limit: Integer.parse(limit) |> elem(0),
@@ -334,6 +326,14 @@ defmodule Amps.DB do
 
   @impl true
   def get_rows(collection, query) do
+    filters =
+      if query["filters"] != nil do
+        query["filters"]
+      else
+        %{}
+      end
+
+    preparedFilter = MongoFilter.parse(filters)
     opts = build_opts(query)
     cursor = Mongo.find(:mongo, collection, preparedFilter, opts)
 
