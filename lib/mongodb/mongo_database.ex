@@ -188,7 +188,9 @@ defmodule Amps.DB do
   end
 
   @impl true
-  def find_one(collection, clauses, opts \\ []) do
+  def find_one(collection, clauses, opts \\ %{}) do
+    opts = build_opts(opts)
+
     Mongo.find_one(:mongo, collection, clauses, opts)
   end
 
@@ -275,8 +277,7 @@ defmodule Amps.DB do
     end
   end
 
-  @impl true
-  def get_rows(collection, query) do
+  def build_opts(query) do
     limit =
       if query["limit"] != nil do
         query["limit"]
@@ -297,13 +298,6 @@ defmodule Amps.DB do
       else
         %{}
       end
-
-    # params =
-    #   if query["params"] do
-    #     Jason.decode!(query["params"])
-    #   else
-    #     %{}
-    #   end
 
     filters =
       if query["filters"] != nil do
@@ -330,29 +324,18 @@ defmodule Amps.DB do
 
     preparedFilter = MongoFilter.parse(filters)
 
-    preparedSort =
-      if sort != nil do
-        Enum.reduce(sort, %{}, fn x, acc ->
-          dir =
-            if x["direction"] == "ASC" do
-              1
-            else
-              -1
-            end
+    [
+      sort: sort,
+      limit: Integer.parse(limit) |> elem(0),
+      skip: Integer.parse(startRow) |> elem(0),
+      projection: projection
+    ]
+  end
 
-          Map.put(acc, x["property"], dir)
-        end)
-      else
-        %{}
-      end
-
-    cursor =
-      Mongo.find(:mongo, collection, preparedFilter,
-        sort: preparedSort,
-        limit: Integer.parse(limit) |> elem(0),
-        skip: Integer.parse(startRow) |> elem(0),
-        projection: projection
-      )
+  @impl true
+  def get_rows(collection, query) do
+    opts = build_opts(query)
+    cursor = Mongo.find(:mongo, collection, preparedFilter, opts)
 
     data =
       cursor
