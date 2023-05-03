@@ -324,6 +324,8 @@ defmodule Amps.DB do
         Enum.reduce(fields, %{}, fn field, proj ->
           Map.put(proj, field, 1)
         end)
+      else
+        nil
       end
 
     preparedFilter = MongoFilter.parse(filters)
@@ -349,12 +351,7 @@ defmodule Amps.DB do
         sort: preparedSort,
         limit: Integer.parse(limit) |> elem(0),
         skip: Integer.parse(startRow) |> elem(0),
-        projection:
-          if projection do
-            %{projection => 1}
-          else
-            nil
-          end
+        projection: projection
       )
 
     data =
