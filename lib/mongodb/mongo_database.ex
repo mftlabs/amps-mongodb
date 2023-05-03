@@ -279,20 +279,6 @@ defmodule Amps.DB do
   end
 
   def build_opts(query) do
-    limit =
-      if query["limit"] != nil do
-        query["limit"]
-      else
-        "0"
-      end
-
-    startRow =
-      if query["start"] != nil do
-        query["start"]
-      else
-        "0"
-      end
-
     sort =
       if query["sort"] != nil do
         query["sort"]
@@ -318,8 +304,8 @@ defmodule Amps.DB do
 
     [
       sort: sort,
-      limit: Integer.parse(limit) |> elem(0),
-      skip: Integer.parse(startRow) |> elem(0),
+      limit: query["limit"],
+      skip: query["start"],
       projection: projection
     ]
   end
@@ -437,7 +423,8 @@ defmodule Amps.DB do
   @impl true
   def find(collection, clauses \\ %{}, opts \\ %{}) do
     clauses = MongoFilter.parse(clauses)
-    cursor = Mongo.find(:mongo, collection, clauses, Enum.into(opts, []))
+    opts = build_opts(opts)
+    cursor = Mongo.find(:mongo, collection, clauses, opts)
     cursor |> Enum.to_list()
   end
 
