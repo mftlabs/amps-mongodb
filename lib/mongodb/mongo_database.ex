@@ -293,28 +293,28 @@ defmodule Amps.DB do
 
     sort =
       if query["sort"] != nil do
-        Jason.decode!(query["sort"])
+        query["sort"]
       else
         %{}
       end
 
-    params =
-      if query["params"] do
-        Jason.decode!(query["params"])
-      else
-        %{}
-      end
+    # params =
+    #   if query["params"] do
+    #     Jason.decode!(query["params"])
+    #   else
+    #     %{}
+    #   end
 
     filters =
-      if params["filters"] != nil do
-        params["filters"]
+      if query["filters"] != nil do
+        query["filters"]
       else
         %{}
       end
 
     fields =
-      if params["fields"] do
-        params["fields"]
+      if query["fields"] do
+        query["fields"]
       else
         nil
       end
