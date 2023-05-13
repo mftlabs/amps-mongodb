@@ -259,8 +259,8 @@ defmodule Amps.DB do
   @impl true
   def delete(collection, clauses) do
     case Mongo.delete_many(:mongo, collection, clauses) do
-      {:ok, _result} ->
-        :ok
+      {:ok, result} ->
+        {:ok, result.deleted_count}
 
       {:error, error} ->
         error
