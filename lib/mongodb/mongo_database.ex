@@ -372,7 +372,8 @@ defmodule Amps.DB do
         %{"$push": %{field => body}}
       )
 
-    Mongo.find_one(:mongo, collection, %{"_id" => id}, projection: %{field => true})
+    new = Mongo.find_one(:mongo, collection, %{"_id" => id}, projection: %{field => true})
+    {fieldid, new}
   end
 
   @impl true
